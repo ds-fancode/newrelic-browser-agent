@@ -1,5 +1,5 @@
 /**
- * Copyright 2020-2025 New Relic, Inc. All rights reserved.
+ * Copyright 2020-2026 New Relic, Inc. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 import { isPureObject } from '../../../common/util/type-check'
@@ -39,7 +39,7 @@ function parseSingleGQL (contents) {
 
   /** parses gql query string and returns [fullmatch, type match, name match] */
   const matches = contents.query.trim().match(/^(query|mutation|subscription)\s?(\w*)/)
-  const operationType = matches?.[1]
+  const operationType = matches?.[1] || contents.operationType
   if (!operationType) return
   const operationName = contents.operationName || matches?.[2] || 'Anonymous'
   return {
