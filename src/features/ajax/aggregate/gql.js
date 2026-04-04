@@ -38,10 +38,22 @@ function parseSingleGQL (contents) {
   if (typeof contents !== 'object' || !contents.query || typeof contents.query !== 'string') return
 
   /** parses gql query string and returns [fullmatch, type match, name match] */
-  const matches = contents.query.trim().match(/^(query|mutation|subscription)\s?(\w*)/)
-  const operationType = matches?.[1] || contents.operationType
-  if (!operationType) return
-  const operationName = contents.operationName || matches?.[2] || 'Anonymous'
+  let operationType = null;
+  /** 
+   * Since the regex above expects the operation (query|mutation|subscription) at the start of the query string.
+   * This is not true in every case, especially in the case of a GET request, 
+   * where the client usually sends the query hash, not the full query string.
+   * So, adding a capability where the application can pass the operationType explicitly
+   * **/
+  if(typeof contents.query === 'string' && contents.query.length){
+    const matches = contents.query.trim().match(/^(query|mutation|subscription)\s?(\w*)/);
+    operationType = matches?.[1] || contents.operationType;
+  }
+  operationType = operationType || contents.operationType;
+  // avoid treating the request as a GraphQL request if we fail to evaluiate operationType and operationName
+  if (!operationType) return;
+  const operationName = contents.operationName || matches?.[2];
+  if (!operationName) return;
   return {
     operationName, // the operation name of the indiv query
     operationType, // query, mutation, or subscription,
@@ -95,5 +107,5 @@ function parseGQLQueryString (gqlQueryString) {
 }
 
 function validateGQLObject (obj) {
-  return !(typeof obj !== 'object' || !obj.query || typeof obj.query !== 'string')
+  return (typeof obj === 'object' && ['query', 'mutation', 'subscription'].includes(obj.operationType) && typeof obj.operationName === 'string');
 }
