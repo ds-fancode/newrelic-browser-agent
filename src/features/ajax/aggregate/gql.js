@@ -35,9 +35,8 @@ export function parseGQL ({ body, query } = {}) {
  * @returns {GQLMetadata}
  */
 function parseSingleGQL (contents) {
-  if (typeof contents !== 'object' || !contents.query || typeof contents.query !== 'string') return
+  if (typeof contents !== 'object') return
 
-  /** parses gql query string and returns [fullmatch, type match, name match] */
   let operationType = null;
   /** 
    * Since the regex above expects the operation (query|mutation|subscription) at the start of the query string.
@@ -46,6 +45,7 @@ function parseSingleGQL (contents) {
    * So, adding a capability where the application can pass the operationType explicitly
    * **/
   if(typeof contents.query === 'string' && contents.query.length){
+    /** parses gql query string and returns [fullmatch, type match, name match] */
     const matches = contents.query.trim().match(/^(query|mutation|subscription)\s?(\w*)/);
     operationType = matches?.[1] || contents.operationType;
   }
