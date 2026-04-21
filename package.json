@@ -1,6 +1,6 @@
 {
-  "name": "@newrelic/browser-agent",
-  "version": "1.312.0",
+  "name": "@ds-fancode/newrelic-browser-agent",
+  "version": "1.312.1",
   "private": false,
   "author": "New Relic Browser Agent Team <browser-agent@newrelic.com>",
   "description": "New Relic Browser Agent",
@@ -203,7 +203,9 @@
     "npm:build:cjs": "npx babel --env-name npm-cjs --out-dir dist/cjs --out-file-extension .js ./src",
     "npm:build:types": "npx tsc -b",
     "npm:pack": "mkdir -p temp && export PKG_NAME=$(npm pack --pack-destination temp) && echo ./temp/$PKG_NAME",
-    "publish:nrdb:stage": "npm --prefix .github/actions install && node .github/actions/nr-upload/index.js --environment=stage --loader-version=$npm_package_version --stage-api-key=$STAGE_API_KEY && node .github/actions/nr-verify/index.js --loader-version=$npm_package_version"
+    "publish:nrdb:stage": "npm --prefix .github/actions install && node .github/actions/nr-upload/index.js --environment=stage --loader-version=$npm_package_version --stage-api-key=$STAGE_API_KEY && node .github/actions/nr-verify/index.js --loader-version=$npm_package_version",
+    "fc:publish:github:beta": "npm run build:npm && npm version prerelease --preid=beta --no-git-tag-version && npm publish --tag beta --registry https://npm.pkg.github.com --access restricted",
+    "fc:publish:github:beta:dry": "npm run fc:publish:github:beta --dry-run"
   },
   "config": {
     "unsafe-perm": true
@@ -283,5 +285,8 @@
     "LICENSE",
     "README.md",
     "CHANGELOG.md"
-  ]
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
