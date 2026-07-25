@@ -27,6 +27,13 @@ export function LoremIpsum() {
       </p>
       <button id="mfe-main-button" onClick={() => {
         console.log("click in MFE")
+        
+        // Add blocking work to ensure interaction duration exceeds 40ms threshold for INP tracking
+        const start = performance.now();
+        while (performance.now() - start < 50) {
+          // Busy wait to simulate slow interaction processing
+        }
+        
         const xhr = new XMLHttpRequest();
         // xhr.open('GET', '/fetch');
         // xhr.send();
@@ -36,6 +43,14 @@ export function LoremIpsum() {
             console.error('Error fetching /json:', error);
         });
         setShowLazy(true);
+        const bamServer = window.NREUM.info.beacon
+        const socket = new WebSocket(`ws://${bamServer}/websocket/pre?param=shouldbedropped`)
+        socket.addEventListener('open', (event) => {
+          socket.send('loremipsum!')
+        })
+        socket.addEventListener('message', (event) => {
+          socket.close() // clean by flag
+        })
         throw new Error('test');
       }}>Click Me To Throw an Error and Lazy Load more content</button>
     </div>

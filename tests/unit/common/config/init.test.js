@@ -4,16 +4,19 @@ jest.mock('../../../../src/common/util/console.js')
 
 test('init props exist and return expected defaults', () => {
   const config = mergeInit({})
-  expect(Object.keys(config).length).toEqual(23)
+  expect(Object.keys(config).length).toEqual(24)
   expect(config.ajax).toEqual({
     autoStart: true,
     block_internal: true,
     deny_list: undefined,
-    enabled: true
+    enabled: true,
+    capture_payloads: 'none'
   })
   expect(config.api).toEqual({
-    allow_registered_children: false,
-    duplicate_registered_data: false
+    register: {
+      enabled: false,
+      duplicate_data_to_container: false
+    }
   })
   expect(config.distributed_tracing).toEqual({
     allowed_origins: undefined,
@@ -127,7 +130,12 @@ test('init props exist and return expected defaults', () => {
     enabled: true,
     elementAttributes: ['id', 'className', 'tagName', 'type']
   })
-  expect(config.browser_consent_mode.enabled).toEqual(false)
+  expect(config.browser_consent_mode).toEqual({
+    enabled: false
+  })
+  expect(config.web_sockets).toEqual({
+    enabled: false
+  })
 })
 
 describe('property getters/setters used for validation', () => {

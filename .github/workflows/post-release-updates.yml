@@ -8,6 +8,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   post-release-updates:
     runs-on: ubuntu-latest

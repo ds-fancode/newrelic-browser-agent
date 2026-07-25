@@ -109,3 +109,44 @@ function parseGQLQueryString (gqlQueryString) {
 function validateGQLObject (obj) {
   return (typeof obj === 'object' && ['query', 'mutation', 'subscription'].includes(obj.operationType) && typeof obj.operationName === 'string');
 }
+
+/**
+ * Checks if a response object has valid GraphQL errors.
+ * @param {object} response - A single GraphQL response object
+ * @returns {boolean} True if the response has valid errors
+ */
+function hasValidGQLErrors (response) {
+  return Array.isArray(response?.errors) &&
+    response.errors.some(err =>
+      err && typeof err === 'object' && typeof err.message === 'string'
+    )
+}
+
+/**
+ * Checks if a response body contains GraphQL errors according to the GraphQL spec.
+ * A valid GraphQL error response contains an "errors" array with at least one error object.
+ * Supports both single and batched GraphQL responses.
+ * @param {string|object|array} [responseBody] The response body to check
+ * @returns {boolean} True if the response contains GraphQL errors
+ */
+export function hasGQLErrors (responseBody) {
+  if (!responseBody) return false
+  try {
+    let parsed = responseBody
+
+    // Parse string to object if needed
+    if (typeof responseBody === 'string') {
+      parsed = JSON.parse(responseBody)
+    }
+
+    // Handle batched GraphQL responses (array of response objects)
+    if (Array.isArray(parsed)) {
+      return parsed.some(hasValidGQLErrors)
+    }
+
+    // Handle single GraphQL response
+    return hasValidGQLErrors(parsed)
+  } catch (err) {
+    return false
+  }
+}

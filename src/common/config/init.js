@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { FEATURE_FLAGS } from '../../features/generic_events/constants'
+import { CAPTURE_PAYLOAD_SETTINGS } from '../../features/ajax/constants'
 import { isValidSelector } from '../dom/query-selector'
 import { DEFAULT_EXPIRES_MS, DEFAULT_INACTIVE_MS } from '../session/constants'
 import { warn } from '../util/console'
@@ -21,7 +22,7 @@ const InitModelFn = () => {
   const hiddenState = {
     feature_flags: [],
     experimental: {
-      allow_registered_children: false,
+      register: false,
       resources: false
     },
     mask_selector: '*',
@@ -47,11 +48,13 @@ const InitModelFn = () => {
     }
   }
   return {
-    ajax: { deny_list: undefined, block_internal: true, enabled: true, autoStart: true },
+    ajax: { deny_list: undefined, block_internal: true, enabled: true, autoStart: true, capture_payloads: CAPTURE_PAYLOAD_SETTINGS.NONE },
     api: {
-      get allow_registered_children () { return hiddenState.feature_flags.includes(FEATURE_FLAGS.REGISTER) || hiddenState.experimental.allow_registered_children },
-      set allow_registered_children (val) { hiddenState.experimental.allow_registered_children = val },
-      duplicate_registered_data: false
+      register: {
+        get enabled () { return hiddenState.feature_flags.includes(FEATURE_FLAGS.REGISTER) || hiddenState.experimental.register },
+        set enabled (val) { hiddenState.experimental.register = val },
+        duplicate_data_to_container: false
+      }
     },
     browser_consent_mode: { enabled: false },
     distributed_tracing: {
@@ -135,7 +138,8 @@ const InitModelFn = () => {
     session_trace: { enabled: true, autoStart: true },
     soft_navigations: { enabled: true, autoStart: true },
     ssl: undefined,
-    user_actions: { enabled: true, elementAttributes: ['id', 'className', 'tagName', 'type'] }
+    user_actions: { enabled: true, elementAttributes: ['id', 'className', 'tagName', 'type'] },
+    web_sockets: { enabled: false }
   }
 }
 
