@@ -23,11 +23,14 @@ import { setupConsentAPI } from '../../src/loaders/api/consent'
 import { setTopLevelCallers } from '../../src/loaders/api/topLevelCallers'
 import { gosCDN } from '../../src/common/window/nreum'
 import { now } from '../../src/common/timing/now'
+import { warnings } from '../../src/loaders/api/register'
+import { single } from '../../src/common/util/invoke'
+import { warn } from '../../src/common/util/console'
 
 // Mock script-tracker to avoid PerformanceObserver requirement
-jest.mock('../../src/common/util/script-tracker', () => {
+jest.mock('../../src/common/v2/script-tracker', () => {
   return {
-    findScriptTimings: jest.fn(() => ({ registeredAt: performance.now(), reportedAt: undefined, fetchStart: 0, fetchEnd: 0, asset: undefined, type: 'unknown' }))
+    findScriptTimings: jest.fn(() => ({ registeredAt: performance.now(), reportedAt: undefined, fetchStart: 0, fetchEnd: 0, scriptStart: 0, scriptEnd: 0, asset: undefined, type: 'unknown' }))
   }
 })
 
@@ -630,13 +633,21 @@ describe('API tests', () => {
       })
 
       beforeEach(async () => {
-        agent.init.api.allow_registered_children = true
+        agent.init.api.register.enabled = true
         id = faker.string.uuid()
         name = faker.string.uuid()
+        // Reset warning state between tests
+        warnings.experimental = single(() => warn(54, 'newrelic.register'))
+        warnings.disabled = single(() => warn(55))
+        warnings.invalidTarget = single((target) => warn(48, target))
+        warnings.deregistered = single(() => warn(68))
       })
 
       test('should return api object', () => {
         const myApi = agent.register({ id, name })
+
+        // Verify experimental warning #54 fires
+        expect(console.debug.mock.calls.map(call => call[0]).some(tag => tag.includes('#54'))).toEqual(true)
 
         /** wait for entity guid to be assigned */
         expect(myApi).toMatchObject({
@@ -660,14 +671,17 @@ describe('API tests', () => {
           myApi.addPageAction()
           myApi.noticeError()
           myApi.log()
+          // Expects warning #48 (invalid target) and #54 (experimental API)
           expect(console.debug).toHaveBeenCalledTimes(2)
         })
       })
 
       test('should warn and not work if disabled', () => {
-        agent.init.api.allow_registered_children = false
+        agent.init.api.register.enabled = false
         let myApi = agent.register({ id, name })
+        // Expects warning #54 (experimental API) and #55 (disabled)
         expect(console.debug.mock.calls.map(call => call[0]).some(tag => tag.includes('#54'))).toEqual(true)
+        expect(console.debug.mock.calls.map(call => call[0]).some(tag => tag.includes('#55'))).toEqual(true)
         myApi.addPageAction()
         myApi.noticeError()
         myApi.log()
@@ -1163,6 +1177,15 @@ describe('API tests', () => {
         expectHandled(SUPPORTABILITY_METRIC_CHANNEL, ['API/interaction/called'])
         expectHandled(SUPPORTABILITY_METRIC_CHANNEL, ['API/get/called'])
         expectHandled('api-ixn-get', [expect.toBeNumber(), expect.any(Object)])
+      })
+
+      test('should forward interaction options to get handler', () => {
+        const opts = { waitForEnd: true, targetPageLoad: true }
+        agent.interaction(opts)
+
+        expectHandled(SUPPORTABILITY_METRIC_CHANNEL, ['API/interaction/called'])
+        expectHandled(SUPPORTABILITY_METRIC_CHANNEL, ['API/get/called'])
+        expectHandled('api-ixn-get', [expect.toBeNumber(), opts])
       })
 
       test('should return an object containing the SPA interaction API methods', () => {

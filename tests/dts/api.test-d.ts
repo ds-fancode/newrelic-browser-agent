@@ -26,7 +26,7 @@ expectType<MicroAgent>(microAgent)
     type?: string;
   }) => any>(agent.addToTrace)
   expectType<(name: string) => any>(agent.setCurrentRouteName)
-  expectType<(opts?: { waitForEnd?: boolean }) => InteractionInstance>(agent.interaction)
+  expectType<(opts?: { waitForEnd?: boolean, targetPageLoad?: boolean }) => InteractionInstance>(agent.interaction)
 
   // Base Agent APIs
   expectType<(name: string, attributes?: object) => any>(agent.addPageAction)
@@ -49,7 +49,7 @@ expectType<MicroAgent>(microAgent)
   expectType<(accept: boolean | null) => any>(agent.consent)
 
   // SPA APIs
-  expectType<(opts?: { waitForEnd?: boolean }) => InteractionInstance>(agent.interaction)
+  expectType<(opts?: { waitForEnd?: boolean, targetPageLoad?: boolean }) => InteractionInstance>(agent.interaction)
   expectType<(value: string) => InteractionInstance>(agent.interaction().actionText)
   expectType<(name: string, callback?: ((...args: any[]) => any)) => (...args: any) => any>(agent.interaction().createTracer)
   expectType<() => InteractionInstance>(agent.interaction().end)
@@ -69,7 +69,6 @@ expectType<MicroAgent>(microAgent)
   expectType<(value: string | null) => void>(registeredEntity.setApplicationVersion)
   expectType<(name: string, value: string | number | boolean | null, persist?: boolean) => void>(registeredEntity.setCustomAttribute)
   expectType<(value: string | null, resetSession?: boolean) => void>(registeredEntity.setUserId)
-  expectType<(target: RegisterAPIConstructor) => RegisterAPI>(registeredEntity.register)
   expectType<RegisterAPIMetadata>(registeredEntity.metadata)
 })
 

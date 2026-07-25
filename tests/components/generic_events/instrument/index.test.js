@@ -78,11 +78,37 @@ describe('generic events sub-features', () => {
     mainAgent.init.page_action.enabled = false
     mainAgent.init.user_actions.enabled = false
     mainAgent.init.performance = { capture_marks: false, capture_measures: false, resources: { enabled: false } }
+    mainAgent.init.feature_flags = ['no_spv']
 
     const genericEventsInstrument = new GenericEvents(mainAgent)
     await new Promise(process.nextTick)
 
     expect(genericEventsInstrument.featAggregate).toBeUndefined()
+  })
+
+  test('should import if all other child features are disabled and websockets flag is enabled', async () => {
+    mainAgent.init.page_action.enabled = false
+    mainAgent.init.user_actions.enabled = false
+    mainAgent.init.performance = { capture_marks: false, capture_measures: false, resources: { enabled: false } }
+    mainAgent.init.web_sockets = { enabled: true }
+    mainAgent.init.feature_flags = ['no_spv']
+
+    const genericEventsInstrument = new GenericEvents(mainAgent)
+    await new Promise(process.nextTick)
+
+    expect(genericEventsInstrument.featAggregate).toBeDefined()
+  })
+
+  test('should import if all other child features are disabled and no_spv flag is absent (SPV is enabled)', async () => {
+    mainAgent.init.page_action.enabled = false
+    mainAgent.init.user_actions.enabled = false
+    mainAgent.init.performance = { capture_marks: false, capture_measures: false, resources: { enabled: false } }
+    mainAgent.init.feature_flags = []
+
+    const genericEventsInstrument = new GenericEvents(mainAgent)
+    await new Promise(process.nextTick)
+
+    expect(genericEventsInstrument.featAggregate).toBeDefined()
   })
 
   test('user actions should be observed if enabled', () => {

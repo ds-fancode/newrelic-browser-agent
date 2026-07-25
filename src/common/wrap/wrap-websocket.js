@@ -6,13 +6,15 @@ import { globalScope } from '../constants/runtime'
 import { generateRandomHexString } from '../ids/unique-id'
 import { now } from '../timing/now'
 import { cleanURL } from '../url/clean-url'
+import { findTargetsFromStackTrace } from '../v2/utils'
 import { gosNREUMOriginals } from '../window/nreum'
 import { subscribeToPageUnload } from '../window/page-visibility'
+import { EVENT_TYPES } from '../constants/events'
 
 const wrapped = {}
 const openWebSockets = new Set() // track all instances to close out metrics on page unload
 
-export function wrapWebSocket (sharedEE) {
+export function wrapWebSocket (sharedEE, agentRef) {
   const originals = gosNREUMOriginals().o
   if (!originals.WS) return sharedEE
 
@@ -32,12 +34,12 @@ export function wrapWebSocket (sharedEE) {
         ws.nrData.connectedDuration = unloadTime - ws.nrData.openedAt
       }
 
-      wsEE.emit('ws', [ws.nrData], ws)
+      wsEE.emit('ws', [ws.nrData, ws.targets], ws)
     })
   })
 
   class WrappedWebSocket extends WebSocket {
-    static name = 'WebSocket'
+    static name = EVENT_TYPES.WS
     static toString () { // fake native WebSocket when static class is stringified
       return 'function WebSocket() { [native code] }'
     }
@@ -60,6 +62,7 @@ export function wrapWebSocket (sharedEE) {
       super(...args)
       /** @type {WebSocketData} */
       this.nrData = new WebSocketData(args[0], args[1])
+      this.targets = findTargetsFromStackTrace(agentRef)
 
       this.addEventListener('open', () => {
         this.nrData.openedAt = now()
@@ -89,7 +92,7 @@ export function wrapWebSocket (sharedEE) {
         this.nrData.connectedDuration = this.nrData.closedAt - this.nrData.openedAt
 
         openWebSockets.delete(this) // remove from tracking set since it's now closed
-        wsEE.emit('ws', [this.nrData], this)
+        wsEE.emit('ws', [this.nrData, this.targets], this)
       })
     }
 

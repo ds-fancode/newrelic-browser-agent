@@ -1,6 +1,6 @@
 {
   "name": "@ds-fancode/newrelic-browser-agent",
-  "version": "1.312.1",
+  "version": "1.318.0",
   "private": false,
   "author": "New Relic Browser Agent Team <browser-agent@newrelic.com>",
   "description": "New Relic Browser Agent",
@@ -176,6 +176,8 @@
     "start": "npm-run-all --parallel cdn:watch test-server",
     "lint": "eslint -c .eslintrc.js --ext .js,.cjs,.mjs .",
     "lint:fix": "npm run lint -- --fix",
+    "generate:warning-codes": "node tools/warning-codes/generate-jsdoc.js",
+    "check:warning-codes": "node tools/warning-codes/check-usage.js",
     "test": " NODE_OPTIONS=--max-old-space-size=8192 jest",
     "test:unit": "jest --selectProjects unit",
     "test:component": "jest --selectProjects component",
@@ -215,7 +217,7 @@
     "url": "https://github.com/newrelic/newrelic-browser-agent.git"
   },
   "dependencies": {
-    "@newrelic/rrweb": "1.1.0",
+    "@newrelic/rrweb": "^1.1.2",
     "fflate": "0.8.2",
     "web-vitals": "4.2.4"
   },
